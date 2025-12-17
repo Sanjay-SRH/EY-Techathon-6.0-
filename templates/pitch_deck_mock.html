@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EY Strategy - Opportunity Vetting Report</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #2e2e2e; padding: 20px; }
+        .slide { 
+            max-width: 900px; 
+            margin: 20px auto; 
+            padding: 50px; 
+            background-color: #ffffff; 
+            border-top: 12px solid #FFE600; /* EY Yellow */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            border-radius: 4px;
+        }
+        .header-section { border-bottom: 2px solid #e0e0e0; margin-bottom: 25px; padding-bottom: 15px; }
+        h1 { color: #2e2e2e; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { color: #666; font-size: 18px; margin-top: 5px; }
+        .date-stamp { color: #888; font-size: 0.9em; margin-bottom: 30px; }
+
+        .metric-container { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 15px; }
+        .metric-card { flex: 1; padding: 20px; border-radius: 4px; text-align: center; border: 1px solid #eee; background: #fafafa; }
+        .metric-card h3 { font-size: 12px; text-transform: uppercase; color: #777; margin-bottom: 10px; }
+        .value { font-size: 28px; font-weight: bold; color: #2e2e2e; }
+
+        /* Logic-based colors */
+        .status-go { border-bottom: 5px solid #28a745; }
+        .status-no-go { border-bottom: 5px solid #dc3545; }
+        .text-risk-high { color: #dc3545 !important; }
+
+        .summary-list { list-style: none; padding: 0; }
+        .summary-list li { padding: 15px; margin-bottom: 10px; background: #f9f9f9; border-left: 4px solid #FFE600; font-size: 15px; }
+        
+        .footer { margin-top: 50px; font-size: 10px; color: #aaa; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="header-section">
+            <h1>Strategic Opportunity Vetting</h1>
+            <h2>Project: {{ data.final_synthesis.project_name }}</h2>
+        </div>
+        
+        <p class="date-stamp"><strong>Report Generated:</strong> {{ current_time }}</p>
+
+        {% set risk_text_class = '' %}
+        {% set box_border_class = 'status-go' %}
+        {% if 'NO-GO' in data.final_synthesis.key_decision or 'HALTED' in data.status %}
+            {% set risk_text_class = 'text-risk-high' %}
+            {% set box_border_class = 'status-no-go' %}
+        {% endif %}
+
+        <div class="metric-container">
+            <div class="metric-card">
+                <h3>Commercial Rating</h3>
+                <p class="value">{{ data.results.IQVIA_Market_Insights.commercial_rating }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Time Saved</h3>
+                <p class="value">{{ data.time_reduction_percentage }}</p>
+            </div>
+            <div class="metric-card {{ box_border_class }}">
+                <h3>Final Risk Status</h3>
+                <p class="value {{ risk_text_class }}">{{ data.results.Patent_Landscape.ip_conflict_status }}</p>
+            </div>
+        </div>
+
+        <h3>Executive Summary</h3>
+        <ul class="summary-list">
+            <li><strong>Molecule:</strong> {{ data.molecule_id }} — Target: {{ data.target_area }}</li>
+            <li><strong>Strategic Decision:</strong> {{ data.final_synthesis.key_decision }} (Cycle: {{ data.time_to_concept }})</li>
+            <li><strong>IP Intelligence:</strong> {{ data.results.Patent_Landscape.risk_summary }}</li>
+            <li><strong>Technical Feasibility:</strong> Risk Level: {{ data.results.Clinical_Data.technical_risk }}</li>
+        </ul>
+
+        <div class="footer">EY CONFIDENTIAL - FOR INTERNAL STRATEGY USE ONLY</div>
+    </div>
+
+    <div class="slide">
+        <div class="header-section">
+            <h1>Technical & Market Deep Dive</h1>
+        </div>
+        <ul class="summary-list">
+            <li><strong>Patent Landscape:</strong> {{ data.results.Patent_Landscape.risk_summary }}</li>
+            <li><strong>Clinical Insights:</strong> Found Technical Risk is {{ data.results.Clinical_Data.technical_risk }}. Historical indications include {{ data.results.Clinical_Data.existing_indications | default('N/A') }}.</li>
+            <li><strong>Supply Chain & EXIM:</strong> Estimated market size is {{ data.results.IQVIA_Market_Insights.current_market_size_inr }}. Global viability is rated {{ data.results.EXIM_Data.supply_chain_viability | default('HIGH/MODERATE') }}.</li>
+        </ul>
+        <div class="footer">EY CONFIDENTIAL - FOR INTERNAL STRATEGY USE ONLY</div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() { window.print(); }, 500);
+        }
+    </script>
+</body>
+</html>

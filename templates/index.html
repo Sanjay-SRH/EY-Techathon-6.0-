@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EY Techathon - Innovation Orchestrator</title>
+    <style>
+        /* Minimal CSS for a clean look */
+        body { font-family: Arial, sans-serif; background-color: #001f3f; color: #fff; padding: 20px; }
+        .container { max-width: 600px; margin: 50px auto; padding: 30px; background-color: #1a1a2e; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
+        h2 { color: #f9d342; text-align: center; }
+        label, input, button { display: block; width: 100%; margin-bottom: 15px; }
+        input[type="text"] { padding: 10px; border: 1px solid #3c4a5c; background-color: #2b2e4a; color: #fff; border-radius: 4px; }
+        button { padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #loading { text-align: center; margin-top: 20px; display: none; color: #00c6ff; }
+        .agent-status { margin-left: 20px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Initiate Autonomous Molecule Vetting (R&D Scientist)</h2>
+        <label for="molecule-id">Molecule ID (e.g., Sertraline):</label>
+        <input type="text" id="molecule-id" value="Sertraline">
+
+        <label for="target-area">Target Therapeutic Area (e.g., OCD):</label>
+        <input type="text" id="target-area" value="OCD">
+
+        <button id="vetting-button" onclick="startVetting()">Initiate Autonomous Vetting Cycle</button>
+        
+        <div id="loading">
+            <p>Master Agent Orchestrating... Simulating 48-Hour Cycle...</p>
+            <div id="status-tracker" class="agent-status"></div>
+        </div>
+        
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_ENDPOINT = '/vetting-process';
+
+        // Worker Agents for the visual tracker
+        const agents = [
+            "Patent Landscape", "Clinical Data", "IQVIA Market Insights", "Web/Literature Review", "EXIM Data"
+        ];
+        
+        async function startVetting() {
+            const molecule = document.getElementById('molecule-id').value;
+            const target = document.getElementById('target-area').value;
+            const loadingDiv = document.getElementById('loading');
+            const statusTracker = document.getElementById('status-tracker');
+            const resultsDiv = document.getElementById('results');
+            const button = document.getElementById('vetting-button');
+
+            // 1. Reset UI and Disable Button
+            resultsDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            statusTracker.innerHTML = ''; 
+            button.disabled = true;
+            button.innerText = 'Processing... (Simulating 48 Hours)';
+
+            // 2. Simulate Parallel Agent Execution (Visual Effect)
+            for(let i = 0; i < agents.length; i++) {
+                const p = document.createElement('p');
+                p.innerHTML = `[⏳] Agent: <strong>${agents[i]}</strong> starting...`;
+                statusTracker.appendChild(p);
+                await new Promise(r => setTimeout(r, 500)); // Pause for 0.5s for visual effect
+                p.innerHTML = `[✅] Agent: <strong>${agents[i]}</strong> completed research.`;
+            }
+
+            // 3. Call Backend Simulation
+            try {
+                // Call to the Flask endpoint to run the '48-hour' simulation
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ molecule: molecule, target: target })
+                });
+
+                const data = await response.json();
+                
+                // 4. Display Results
+                loadingDiv.style.display = 'none';
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Error fetching results:', error);
+                loadingDiv.innerHTML = '<p style="color: red;">Error: Could not connect to the backend server. Is app.py running?</p>';
+            } finally {
+                button.disabled = false;
+                button.innerText = 'Initiate Autonomous Vetting Cycle';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Capture the current inputs from the UI to send to the PDF generator
+            const moleculeName = document.getElementById('molecule-id').value;
+            const targetArea = document.getElementById('target-area').value;
+
+            const patent = data.results.Patent_Landscape;
+            const market = data.results.IQVIA_Market_Insights;
+            const exim = data.results.EXIM_Data;
+
+            // Define the logic-based color for the status box
+            const statusColor = (data.status === "HALTED" || data.status === "FAILED") ? "#4d0000" : "#004d40";
+
+            resultsDiv.innerHTML = `
+                <h3>Vetting Cycle Complete! (${data.time_to_concept})</h3>
+                <p style="color: #a3ff00;">Guaranteed <strong>${data.time_reduction_percentage}</strong> reduction in Time-to-Concept.</p>
+                
+                <div style="background-color: ${statusColor}; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 5px solid #FFE600;">
+                    <h4>🎯 IP Kill-Switch Status (Risk Vetting)</h4>
+                    <p style="font-size: 1.4em; font-weight: bold; color: #a3ff00;">${patent.ip_conflict_status}</p>
+                    <p>Primary Patent Expiry: ${patent.primary_patent_expiry}</p>
+                    <p>${patent.risk_summary}</p>
+                </div>
+
+                <div style="margin-top: 20px; background-color: #2b2e4a; padding: 15px; border-radius: 6px;">
+                    <h4>📈 Commercial Summary (For Strategy Team)</h4>
+                    <p>Commercial Rating: <strong>${market.commercial_rating}</strong></p>
+                    <p>Current Target Market Size: <strong>${market.current_market_size_inr}</strong></p>
+                    <p>Estimated API Cost: ${exim.avg_api_cost_inr}</p>
+                </div>
+
+                <a href="/pitch-deck-mock?molecule=${encodeURIComponent(moleculeName)}&target=${encodeURIComponent(targetArea)}" target="_blank">
+                    <button style="background-color: #f9d342; color: #1a1a2e; margin-top: 20px; font-weight: bold;">
+                        Download Final Product Pitch Deck
+                    </button>
+                </a>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
